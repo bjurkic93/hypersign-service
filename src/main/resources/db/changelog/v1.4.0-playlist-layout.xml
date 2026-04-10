@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- Add layout_id column to playlist table -->
+    <changeSet id="add-layout-to-playlist" author="hypersign">
+        <comment>Add layout reference to playlist for multi-zone support</comment>
+        
+        <addColumn tableName="playlist">
+            <column name="layout_id" type="BIGINT"/>
+        </addColumn>
+
+        <addForeignKeyConstraint
+                baseTableName="playlist"
+                baseColumnNames="layout_id"
+                constraintName="fk_playlist_layout"
+                referencedTableName="layout"
+                referencedColumnNames="id"
+                onDelete="SET NULL"/>
+
+        <createIndex tableName="playlist" indexName="idx_playlist_layout">
+            <column name="layout_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,926 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- ==================== SHEDLOCK ==================== -->
+    <changeSet id="create-shedlock-table" author="hypersign">
+        <createTable tableName="shedlock">
+            <column name="name" type="VARCHAR(64)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="lock_until" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="locked_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="locked_by" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- ==================== ORGANIZATION ==================== -->
+    <changeSet id="create-organization-table" author="hypersign">
+        <createTable tableName="organization">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(50)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(500)"/>
+            <column name="logo_url" type="VARCHAR(500)"/>
+            <column name="logo_image_id" type="BIGINT"/>
+            <column name="organization_type" type="VARCHAR(50)" defaultValue="PUBLISHER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="subscription_tier" type="VARCHAR(50)"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="modified_by" type="VARCHAR(255)"/>
+        </createTable>
+
+        <createIndex indexName="idx_organization_code" tableName="organization">
+            <column name="code"/>
+        </createIndex>
+        <createIndex indexName="idx_organization_type" tableName="organization">
+            <column name="organization_type"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ==================== APP_USER ==================== -->
+    <changeSet id="create-app-user-table" author="hypersign">
+        <createTable tableName="app_user">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="external_id" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="display_name" type="VARCHAR(100)"/>
+            <column name="profile_picture_url" type="VARCHAR(500)"/>
+            <column name="profile_image_id" type="BIGINT"/>
+            <column name="role" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="organization_id" type="BIGINT">
+                <constraints foreignKeyName="fk_user_organization" references="organization(id)"/>
+            </column>
+            <column name="last_login_at" type="TIMESTAMP"/>
+            <column name="bio" type="VARCHAR(500)"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="modified_by" type="VARCHAR(255)"/>
+        </createTable>
+
+        <createIndex indexName="idx_user_external_id" tableName="app_user">
+            <column name="external_id"/>
+        </createIndex>
+        <createIndex indexName="idx_user_email" tableName="app_user">
+            <column name="email"/>
+        </createIndex>
+        <createIndex indexName="idx_user_organization" tableName="app_user">
+            <column name="organization_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ==================== MEDIA_UPLOAD (unified images + videos) ==================== -->
+    <changeSet id="create-media-upload-table" author="hypersign">
+        <createTable tableName="media_upload">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="content_type" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="object_key" type="VARCHAR(1024)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="thumbnail_object_key" type="VARCHAR(1024)"/>
+            <column name="original_filename" type="VARCHAR(512)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="mime_type" type="VARCHAR(128)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="folder" type="VARCHAR(100)"/>
+            <column name="expected_size" type="BIGINT"/>
+            <column name="uploaded_size" type="BIGINT"/>
+            <column name="etag" type="VARCHAR(128)"/>
+            <column name="width" type="INTEGER"/>
+            <column name="height" type="INTEGER"/>
+            <column name="duration_in_seconds" type="BIGINT"/>
+            <column name="status" type="VARCHAR(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expires_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="uploaded_at" type="TIMESTAMP"/>
+            <column name="last_check_at" type="TIMESTAMP"/>
+            <column name="fail_reason" type="VARCHAR(1024)"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="modified_by" type="VARCHAR(255)"/>
+        </createTable>
+
+        <createIndex tableName="media_upload" indexName="idx_media_upload_content_type">
+            <column name="content_type"/>
+        </createIndex>
+        <createIndex tableName="media_upload" indexName="idx_media_upload_status">
+            <column name="status"/>
+        </createIndex>
+        <createIndex tableName="media_upload" indexName="idx_media_upload_object_key">
+            <column name="object_key"/>
+        </createIndex>
+        <createIndex tableName="media_upload" indexName="idx_media_upload_folder">
+            <column name="folder"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ==================== PRICING_TIER ==================== -->
+    <changeSet id="create-pricing-tier-table" author="hypersign">
+        <createTable tableName="pricing_tier">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(500)"/>
+            <column name="price" type="DECIMAL(19,4)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="currency" type="VARCHAR(10)" defaultValue="EUR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="modified_by" type="VARCHAR(255)"/>
+        </createTable>
+
+        <createIndex indexName="idx_pricing_tier_active" tableName="pricing_tier">
+            <column name="active"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ==================== ADVERTISEMENT ==================== -->
+    <changeSet id="create-advertisement-table" author="hypersign">
+        <createTable tableName="advertisement">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="description" type="VARCHAR(2000)"/>
+            <column name="organization_id" type="BIGINT">
+                <constraints foreignKeyName="fk_advertisement_organization" references="organization(id)"/>
+            </column>
+            <column name="media_type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="video_id" type="BIGINT">
+                <constraints foreignKeyName="fk_advertisement_video" references="media_upload(id)"/>
+            </column>
+            <column name="platform" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pricing_tier_id" type="BIGINT">
+                <constraints foreignKeyName="fk_advertisement_pricing_tier" references="pricing_tier(id)"/>
+            </column>
+            <column name="is_public" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="valid_from" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="valid_to" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="modified_by" type="VARCHAR(255)"/>
+        </createTable>
+
+        <createIndex indexName="idx_advertisement_organization" tableName="advertisement">
+            <column name="organization_id"/>
+        </createIndex>
+        <createIndex indexName="idx_advertisement_platform" tableName="advertisement">
+            <column name="platform"/>
+        </createIndex>
+        <createIndex indexName="idx_advertisement_validity" tableName="advertisement">
+            <column name="valid_from"/>
+            <column name="valid_to"/>
+        </createIndex>
+        <createIndex indexName="idx_advertisement_active" tableName="advertisement">
+            <column name="active"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ==================== ADVERTISEMENT_IMAGE ==================== -->
+    <changeSet id="create-advertisement-image-table" author="hypersign">
+        <createTable tableName="advertisement_image">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="advertisement_id" type="BIGINT">
+                <constraints nullable="false" 
+                             foreignKeyName="fk_advertisement_image_advertisement" 
+                             references="advertisement(id)"/>
+            </column>
+            <column name="image_id" type="BIGINT">
+                <constraints nullable="false" 
+                             foreignKeyName="fk_advertisement_image_media" 
+                             references="media_upload(id)"/>
+            </column>
+            <column name="display_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="display_duration_seconds" type="INT"/>
+            <column name="display_duration_days" type="INT"/>
+            <column name="image_hash" type="VARCHAR(64)"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="modified_by" type="VARCHAR(255)"/>
+        </createTable>
+
+        <createIndex indexName="idx_advertisement_image_advertisement" tableName="advertisement_image">
+            <column name="advertisement_id"/>
+        </createIndex>
+        <createIndex indexName="idx_advertisement_image_order" tableName="advertisement_image">
+            <column name="advertisement_id"/>
+            <column name="display_order"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ==================== ADVERTISEMENT_VIDEO ==================== -->
+    <changeSet id="create-advertisement-video-table" author="hypersign">
+        <createTable tableName="advertisement_video">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="advertisement_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="video_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="display_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="display_duration_seconds" type="INT"/>
+            <column name="title" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="modified_by" type="VARCHAR(255)"/>
+        </createTable>
+
+        <addForeignKeyConstraint 
+            baseTableName="advertisement_video"
+            baseColumnNames="advertisement_id"
+            constraintName="fk_adv_video_advertisement"
+            referencedTableName="advertisement"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint 
+            baseTableName="advertisement_video"
+            baseColumnNames="video_id"
+            constraintName="fk_adv_video_media"
+            referencedTableName="media_upload"
+            referencedColumnNames="id"/>
+
+        <createIndex indexName="idx_adv_video_advertisement" tableName="advertisement_video">
+            <column name="advertisement_id"/>
+            <column name="display_order"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ==================== USER_ADVERTISEMENT ==================== -->
+    <changeSet id="create-user-advertisement-table" author="hypersign">
+        <createTable tableName="user_advertisement">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="advertisement_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="activated_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expires_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deactivated_at" type="TIMESTAMP"/>
+            <column name="paused_at" type="TIMESTAMP"/>
+            <column name="verification_count" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_verified_at" type="TIMESTAMP"/>
+            <column name="total_valid_seconds" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="device_info" type="VARCHAR(255)"/>
+            <column name="deactivation_reason" type="VARCHAR(100)"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="modified_by" type="VARCHAR(255)"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="user_advertisement"
+                baseColumnNames="user_id"
+                constraintName="fk_user_advertisement_user"
+                referencedTableName="app_user"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="user_advertisement"
+                baseColumnNames="advertisement_id"
+                constraintName="fk_user_advertisement_ad"
+                referencedTableName="advertisement"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addUniqueConstraint
+                tableName="user_advertisement"
+                columnNames="user_id, advertisement_id"
+                constraintName="uk_user_advertisement"/>
+
+        <createIndex indexName="idx_user_ad_user_id" tableName="user_advertisement">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex indexName="idx_user_ad_advertisement_id" tableName="user_advertisement">
+            <column name="advertisement_id"/>
+        </createIndex>
+        <createIndex indexName="idx_user_ad_status" tableName="user_advertisement">
+            <column name="status"/>
+        </createIndex>
+        <createIndex indexName="idx_user_ad_activated_at" tableName="user_advertisement">
+            <column name="activated_at"/>
+        </createIndex>
+        <createIndex indexName="idx_user_ad_expires_at" tableName="user_advertisement">
+            <column name="expires_at"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ==================== TV_DEVICE_REGISTRATION ==================== -->
+    <changeSet id="create-tv-device-registration-table" author="hypersign">
+        <createTable tableName="tv_device_registration">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="organization_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="device_id" type="VARCHAR(64)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="public_key" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="device_token" type="VARCHAR(128)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="device_name" type="VARCHAR(100)"/>
+            <column name="device_model" type="VARCHAR(100)"/>
+            <column name="device_manufacturer" type="VARCHAR(100)"/>
+            <column name="os_version" type="VARCHAR(20)"/>
+            <column name="app_version" type="VARCHAR(20)"/>
+            <column name="registered_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_seen_at" type="TIMESTAMP"/>
+            <column name="last_foreground_at" type="TIMESTAMP"/>
+            <column name="launch_requested_at" type="TIMESTAMP"/>
+            <column name="display_connected" type="BOOLEAN"/>
+            <column name="is_trusted" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="trust_score" type="INT" defaultValueNumeric="100">
+                <constraints nullable="false"/>
+            </column>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="modified_by" type="VARCHAR(255)"/>
+        </createTable>
+
+        <addForeignKeyConstraint 
+            baseTableName="tv_device_registration"
+            baseColumnNames="organization_id"
+            constraintName="fk_tv_device_organization"
+            referencedTableName="organization"
+            referencedColumnNames="id"/>
+
+        <createIndex indexName="idx_tv_device_token" tableName="tv_device_registration">
+            <column name="device_token"/>
+        </createIndex>
+        <createIndex indexName="idx_tv_device_org_active" tableName="tv_device_registration">
+            <column name="organization_id"/>
+            <column name="active"/>
+        </createIndex>
+        <createIndex indexName="idx_tv_device_trusted" tableName="tv_device_registration">
+            <column name="is_trusted"/>
+            <column name="active"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ==================== ANNOUNCEMENT ==================== -->
+    <changeSet id="create-announcement-table" author="hypersign">
+        <createTable tableName="announcement">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="message" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="html_content" type="TEXT"/>
+            <column name="channel" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="scheduled_at" type="TIMESTAMP"/>
+            <column name="sent_at" type="TIMESTAMP"/>
+            <column name="total_recipients" type="INT"/>
+            <column name="successful_deliveries" type="INT"/>
+            <column name="failed_deliveries" type="INT"/>
+            <column name="created_by_id" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="announcement"
+                baseColumnNames="created_by_id"
+                constraintName="fk_announcement_created_by"
+                referencedTableName="app_user"
+                referencedColumnNames="id"/>
+
+        <createIndex tableName="announcement" indexName="idx_announcement_status">
+            <column name="status"/>
+        </createIndex>
+        <createIndex tableName="announcement" indexName="idx_announcement_scheduled_at">
+            <column name="scheduled_at"/>
+        </createIndex>
+        <createIndex tableName="announcement" indexName="idx_announcement_active">
+            <column name="active"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ==================== MEDIA UPLOAD TAGS ==================== -->
+    <changeSet id="create-media-upload-tags-table" author="hypersign">
+        <createTable tableName="media_upload_tags">
+            <column name="media_upload_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tag" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <addForeignKeyConstraint
+                baseTableName="media_upload_tags"
+                baseColumnNames="media_upload_id"
+                constraintName="fk_media_upload_tags_media"
+                referencedTableName="media_upload"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+        
+        <createIndex tableName="media_upload_tags" indexName="idx_media_upload_tags_media_id">
+            <column name="media_upload_id"/>
+        </createIndex>
+        <createIndex tableName="media_upload_tags" indexName="idx_media_upload_tags_tag">
+            <column name="tag"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ==================== PLAYLIST ==================== -->
+    <changeSet id="create-playlist-table" author="hypersign">
+        <createTable tableName="playlist">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="organization_id" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="modified_by" type="VARCHAR(255)"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="playlist"
+                baseColumnNames="organization_id"
+                constraintName="fk_playlist_organization"
+                referencedTableName="organization"
+                referencedColumnNames="id"/>
+
+        <createIndex tableName="playlist" indexName="idx_playlist_organization">
+            <column name="organization_id"/>
+        </createIndex>
+        <createIndex tableName="playlist" indexName="idx_playlist_active">
+            <column name="active"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ==================== PLAYLIST_ITEM ==================== -->
+    <changeSet id="create-playlist-item-table" author="hypersign">
+        <createTable tableName="playlist_item">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="playlist_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="media_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="order_index" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="duration_seconds" type="INT" defaultValueNumeric="10">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="modified_by" type="VARCHAR(255)"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="playlist_item"
+                baseColumnNames="playlist_id"
+                constraintName="fk_playlist_item_playlist"
+                referencedTableName="playlist"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="playlist_item"
+                baseColumnNames="media_id"
+                constraintName="fk_playlist_item_media"
+                referencedTableName="media_upload"
+                referencedColumnNames="id"/>
+
+        <createIndex tableName="playlist_item" indexName="idx_playlist_item_playlist">
+            <column name="playlist_id"/>
+        </createIndex>
+        <createIndex tableName="playlist_item" indexName="idx_playlist_item_order">
+            <column name="playlist_id"/>
+            <column name="order_index"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ==================== SCHEDULE ==================== -->
+    <changeSet id="create-schedule-table" author="hypersign">
+        <createTable tableName="schedule">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="playlist_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="organization_id" type="BIGINT"/>
+            <column name="start_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_date" type="DATE"/>
+            <column name="start_time" type="TIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_time" type="TIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="repeat_type" type="VARCHAR(20)" defaultValue="DAILY">
+                <constraints nullable="false"/>
+            </column>
+            <column name="priority" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="modified_by" type="VARCHAR(255)"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="schedule"
+                baseColumnNames="playlist_id"
+                constraintName="fk_schedule_playlist"
+                referencedTableName="playlist"
+                referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint
+                baseTableName="schedule"
+                baseColumnNames="organization_id"
+                constraintName="fk_schedule_organization"
+                referencedTableName="organization"
+                referencedColumnNames="id"/>
+
+        <createIndex tableName="schedule" indexName="idx_schedule_playlist">
+            <column name="playlist_id"/>
+        </createIndex>
+        <createIndex tableName="schedule" indexName="idx_schedule_active">
+            <column name="active"/>
+        </createIndex>
+        <createIndex tableName="schedule" indexName="idx_schedule_dates">
+            <column name="start_date"/>
+            <column name="end_date"/>
+        </createIndex>
+        <createIndex tableName="schedule" indexName="idx_schedule_priority">
+            <column name="priority"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ==================== SCHEDULE_DAYS ==================== -->
+    <changeSet id="create-schedule-days-table" author="hypersign">
+        <createTable tableName="schedule_days">
+            <column name="schedule_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="day_of_week" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="schedule_days"
+                baseColumnNames="schedule_id"
+                constraintName="fk_schedule_days_schedule"
+                referencedTableName="schedule"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <createIndex tableName="schedule_days" indexName="idx_schedule_days_schedule">
+            <column name="schedule_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ==================== TV_AUTH_SESSION ==================== -->
+    <changeSet id="create-tv-auth-session-table" author="hypersign">
+        <createTable tableName="tv_auth_session">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="session_id" type="VARCHAR(64)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="session_code" type="VARCHAR(10)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="device_id" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="approved_by_user_id" type="BIGINT"/>
+            <column name="organization_id" type="BIGINT"/>
+            <column name="access_token" type="TEXT"/>
+            <column name="refresh_token" type="TEXT"/>
+            <column name="token_expires_at" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expires_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="approved_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="updated_by" type="VARCHAR(255)"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="tv_auth_session"
+                baseColumnNames="approved_by_user_id"
+                constraintName="fk_tv_auth_session_user"
+                referencedTableName="app_user"
+                referencedColumnNames="id"
+                onDelete="SET NULL"/>
+
+        <addForeignKeyConstraint
+                baseTableName="tv_auth_session"
+                baseColumnNames="organization_id"
+                constraintName="fk_tv_auth_session_org"
+                referencedTableName="organization"
+                referencedColumnNames="id"
+                onDelete="SET NULL"/>
+
+        <createIndex tableName="tv_auth_session" indexName="idx_tv_auth_session_id">
+            <column name="session_id"/>
+        </createIndex>
+        <createIndex tableName="tv_auth_session" indexName="idx_tv_auth_session_code">
+            <column name="session_code"/>
+        </createIndex>
+        <createIndex tableName="tv_auth_session" indexName="idx_tv_auth_session_device">
+            <column name="device_id"/>
+        </createIndex>
+        <createIndex tableName="tv_auth_session" indexName="idx_tv_auth_session_status">
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ==================== LAYOUT ==================== -->
+    <changeSet id="create-layout-table" author="hypersign">
+        <createTable tableName="layout">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="width" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="height" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="orientation" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="organization_id" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="modified_by" type="VARCHAR(255)"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="layout"
+                baseColumnNames="organization_id"
+                constraintName="fk_layout_organization"
+                referencedTableName="organization"
+                referencedColumnNames="id"/>
+
+        <createIndex tableName="layout" indexName="idx_layout_organization">
+            <column name="organization_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ==================== LAYOUT_SECTION ==================== -->
+    <changeSet id="create-layout-section-table" author="hypersign">
+        <createTable tableName="layout_section">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="layout_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="section_id" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="x" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="y" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="width" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="height" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content_type" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="color" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="z_index" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="modified_by" type="VARCHAR(255)"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="layout_section"
+                baseColumnNames="layout_id"
+                constraintName="fk_layout_section_layout"
+                referencedTableName="layout"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <createIndex tableName="layout_section" indexName="idx_layout_section_layout">
+            <column name="layout_id"/>
+        </createIndex>
+        <createIndex tableName="layout_section" indexName="idx_layout_section_order">
+            <column name="layout_id"/>
+            <column name="z_index"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ==================== INITIAL DATA ==================== -->
+    <changeSet id="insert-initial-tv-pricing-tier" author="hypersign">
+        <comment>Insert initial TV advertisement pricing tier</comment>
+        
+        <insert tableName="pricing_tier">
+            <column name="name" value="TV Standard"/>
+            <column name="description" value="Standard TV advertisement pricing - 1 RDX per minute of viewing"/>
+            <column name="price" valueNumeric="1"/>
+            <column name="currency" value="RDX"/>
+            <column name="active" valueBoolean="true"/>
+            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" value="system"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

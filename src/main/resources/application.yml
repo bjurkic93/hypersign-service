@@ -1,0 +1,71 @@
+server:
+  port: 8088
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+
+spring:
+  application.name: hypersign-service
+  freemarker:
+    template-loader-path: classpath:/templates/email/
+    charset: UTF-8
+    check-template-location: true
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/${POSTGRES_DB:hypersign}
+    username: ${POSTGRES_USER:hypersign_user}
+    password: ${POSTGRES_PASSWORD:Passw0rd}
+  liquibase:
+    change-log: classpath:db/changelog/changelog-master.xml
+
+cloudflare:
+  r2:
+    account-id: ba7cc4718ba68c4805510f3192f4e5f4
+    access-key: e5ec026c965e6312e146895c0b4142ac
+    secret-key: 27648be4aaab3fc3a197f826702f0107c23d973d4a2a88e61c3e22c2e240a220
+    bucket: hypersign-content
+    presign-minutes: 5
+
+# OAuth2 Resource Server Configuration
+oauth2:
+  auth-server-url: ${AUTH_SERVER_URL:http://localhost:8086}
+  issuer: ${OAUTH2_ISSUER:https://auth.reddia-x.com}
+  audience: ${OAUTH2_AUDIENCE:rdx-secure}
+
+# JWT Configuration - Use the same public key as rdx-auth
+jwt:
+  public:
+    key: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqnIsA3skzuptQHsRxF+2+WgFgRFY6IVS2KZChGzPMtJ1QSg4P4lLr/Rgbwsx360iqmQzs3XHHDAYUdJq2UvPrIdemm9gBSJhSFmnGwa6vrsBfUrTCdNlYpa+ZCiEt333a7uBXLrnp2Mxxai6cW0k0qqMIytaS7COFYZ8W7IrWn7PSMsG2L4AJbs4pcGS5IsTdg10C26hKUDnSLm2N92958ZkpYv13kWAHXz2sqpLfFhrKNwcZr5tZIWU3sUa4la6o6alWy2Ui/9x6awrcKw2e7Aty2LuJk9naqvD88EOuRbiQxLHNtgPAdipfpRnB1T3fha7mYrmsuFgVGfRL7odMwIDAQAB
+
+# CORS Configuration
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4500,http://localhost:4501,http://localhost:4200,http://localhost:4201,https://login.reddia-x.com,https://cms.reddia-x.com,https://admin.reddia-x.com}
+
+# Advertisement Configuration
+advertisement:
+  max-duration-seconds: ${AD_MAX_DURATION_SECONDS:300}
+
+
+# Firebase Configuration for FCM Push Notifications
+firebase:
+  enabled: ${FIREBASE_ENABLED:true}
+  credentials-file: ${FIREBASE_CREDENTIALS_FILE:firebase-service-account.json}
+
+# LogHealer request logging
+loghealer:
+  request-logging:
+    enabled: true
+    include-query-string: true

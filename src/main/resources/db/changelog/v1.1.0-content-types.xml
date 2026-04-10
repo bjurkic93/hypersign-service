@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- ==================== TICKER CONTENT ==================== -->
+    <changeSet id="create-ticker-content-table" author="hypersign">
+        <comment>Create ticker content table for scrolling text</comment>
+        
+        <createTable tableName="ticker_content">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="text" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="speed" type="INT" defaultValueNumeric="50">
+                <constraints nullable="false"/>
+            </column>
+            <column name="direction" type="VARCHAR(10)" defaultValue="LEFT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="background_color" type="VARCHAR(20)"/>
+            <column name="text_color" type="VARCHAR(20)"/>
+            <column name="font_family" type="VARCHAR(100)"/>
+            <column name="font_size" type="INT"/>
+            <column name="organization_id" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="modified_by" type="VARCHAR(255)"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="ticker_content"
+                baseColumnNames="organization_id"
+                constraintName="fk_ticker_content_organization"
+                referencedTableName="organization"
+                referencedColumnNames="id"
+                onDelete="SET NULL"/>
+
+        <createIndex tableName="ticker_content" indexName="idx_ticker_content_org">
+            <column name="organization_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="create-ticker-content-tags-table" author="hypersign">
+        <comment>Create ticker content tags table</comment>
+        
+        <createTable tableName="ticker_content_tags">
+            <column name="ticker_content_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tag" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="ticker_content_tags"
+                baseColumnNames="ticker_content_id"
+                constraintName="fk_ticker_content_tags_ticker"
+                referencedTableName="ticker_content"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <createIndex tableName="ticker_content_tags" indexName="idx_ticker_content_tags_id">
+            <column name="ticker_content_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ==================== RSS CONTENT ==================== -->
+    <changeSet id="create-rss-content-table" author="hypersign">
+        <comment>Create RSS content table for RSS feeds</comment>
+        
+        <createTable tableName="rss_content">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="feed_url" type="VARCHAR(2048)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="refresh_interval_minutes" type="INT" defaultValueNumeric="15">
+                <constraints nullable="false"/>
+            </column>
+            <column name="max_items" type="INT" defaultValueNumeric="10">
+                <constraints nullable="false"/>
+            </column>
+            <column name="show_images" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="show_description" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="display_mode" type="VARCHAR(20)" defaultValue="LIST">
+                <constraints nullable="false"/>
+            </column>
+            <column name="background_color" type="VARCHAR(20)"/>
+            <column name="text_color" type="VARCHAR(20)"/>
+            <column name="font_family" type="VARCHAR(100)"/>
+            <column name="font_size" type="INT"/>
+            <column name="organization_id" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="modified_by" type="VARCHAR(255)"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="rss_content"
+                baseColumnNames="organization_id"
+                constraintName="fk_rss_content_organization"
+                referencedTableName="organization"
+                referencedColumnNames="id"
+                onDelete="SET NULL"/>
+
+        <createIndex tableName="rss_content" indexName="idx_rss_content_org">
+            <column name="organization_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="create-rss-content-tags-table" author="hypersign">
+        <comment>Create RSS content tags table</comment>
+        
+        <createTable tableName="rss_content_tags">
+            <column name="rss_content_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tag" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="rss_content_tags"
+                baseColumnNames="rss_content_id"
+                constraintName="fk_rss_content_tags_rss"
+                referencedTableName="rss_content"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <createIndex tableName="rss_content_tags" indexName="idx_rss_content_tags_id">
+            <column name="rss_content_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ==================== WEBPAGE CONTENT ==================== -->
+    <changeSet id="create-webpage-content-table" author="hypersign">
+        <comment>Create webpage content table for embedded webpages</comment>
+        
+        <createTable tableName="webpage_content">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="url" type="VARCHAR(2048)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="refresh_interval_seconds" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="scroll_enabled" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="zoom_level" type="INT" defaultValueNumeric="100">
+                <constraints nullable="false"/>
+            </column>
+            <column name="organization_id" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="modified_by" type="VARCHAR(255)"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="webpage_content"
+                baseColumnNames="organization_id"
+                constraintName="fk_webpage_content_organization"
+                referencedTableName="organization"
+                referencedColumnNames="id"
+                onDelete="SET NULL"/>
+
+        <createIndex tableName="webpage_content" indexName="idx_webpage_content_org">
+            <column name="organization_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="create-webpage-content-tags-table" author="hypersign">
+        <comment>Create webpage content tags table</comment>
+        
+        <createTable tableName="webpage_content_tags">
+            <column name="webpage_content_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tag" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="webpage_content_tags"
+                baseColumnNames="webpage_content_id"
+                constraintName="fk_webpage_content_tags_webpage"
+                referencedTableName="webpage_content"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <createIndex tableName="webpage_content_tags" indexName="idx_webpage_content_tags_id">
+            <column name="webpage_content_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

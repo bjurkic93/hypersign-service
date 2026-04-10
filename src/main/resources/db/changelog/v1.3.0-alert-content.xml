@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- ==================== ALERT CONTENT ==================== -->
+    <changeSet id="create-alert-content-table" author="hypersign">
+        <comment>Create alert content table for early warning alerts</comment>
+        
+        <createTable tableName="alert_content">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="message" type="VARCHAR(2000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="severity" type="VARCHAR(20)" defaultValue="WARNING">
+                <constraints nullable="false"/>
+            </column>
+            <column name="display_mode" type="VARCHAR(20)" defaultValue="BANNER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="background_color" type="VARCHAR(20)"/>
+            <column name="text_color" type="VARCHAR(20)"/>
+            <column name="icon_name" type="VARCHAR(50)"/>
+            <column name="show_icon" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="auto_scroll" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="scroll_speed" type="INT"/>
+            <column name="sound_enabled" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sound_url" type="VARCHAR(2048)"/>
+            <column name="blink_enabled" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="active_from" type="TIMESTAMP"/>
+            <column name="active_until" type="TIMESTAMP"/>
+            <column name="organization_id" type="BIGINT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modified_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="modified_by" type="VARCHAR(255)"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="alert_content"
+                baseColumnNames="organization_id"
+                constraintName="fk_alert_content_organization"
+                referencedTableName="organization"
+                referencedColumnNames="id"
+                onDelete="SET NULL"/>
+
+        <createIndex tableName="alert_content" indexName="idx_alert_content_org">
+            <column name="organization_id"/>
+        </createIndex>
+        
+        <createIndex tableName="alert_content" indexName="idx_alert_content_severity">
+            <column name="severity"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="create-alert-content-tags-table" author="hypersign">
+        <comment>Create alert content tags table</comment>
+        
+        <createTable tableName="alert_content_tags">
+            <column name="alert_content_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tag" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="alert_content_tags"
+                baseColumnNames="alert_content_id"
+                constraintName="fk_alert_content_tags_alert"
+                referencedTableName="alert_content"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <createIndex tableName="alert_content_tags" indexName="idx_alert_content_tags_id">
+            <column name="alert_content_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

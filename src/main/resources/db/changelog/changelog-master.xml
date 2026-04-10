@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <include file="db/changelog/v1.0.0-initial-schema.xml"/>
+    <include file="db/changelog/v1.1.0-content-types.xml"/>
+    <include file="db/changelog/v1.2.0-content-status.xml"/>
+    <include file="db/changelog/v1.3.0-alert-content.xml"/>
+    <include file="db/changelog/v1.4.0-playlist-layout.xml"/>
+    <include file="db/changelog/v1.5.0-playlist-item-section.xml"/>
+
+</databaseChangeLog>

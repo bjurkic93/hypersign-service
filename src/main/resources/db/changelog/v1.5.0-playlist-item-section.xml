@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="v1.5.0-add-section-id-to-playlist-item" author="system">
+        <addColumn tableName="PLAYLIST_ITEM">
+            <column name="section_id" type="VARCHAR(50)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="v1.5.0-add-content-type-to-playlist-item" author="system">
+        <addColumn tableName="PLAYLIST_ITEM">
+            <column name="content_type" type="VARCHAR(20)" defaultValue="MEDIA">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content_id" type="BIGINT">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+        
+        <!-- Copy media_id to content_id for existing records -->
+        <sql>UPDATE PLAYLIST_ITEM SET content_id = media_id WHERE media_id IS NOT NULL</sql>
+        
+        <!-- Make media_id nullable for non-media content types -->
+        <dropNotNullConstraint tableName="PLAYLIST_ITEM" columnName="media_id" columnDataType="BIGINT"/>
+    </changeSet>
+
+</databaseChangeLog>

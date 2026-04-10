@@ -1,0 +1,1 @@
+RdX: Vaš popust voucher - ${discountPercentage}% od ${organizationName}
