@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
@@ -37,7 +38,7 @@ public class TvAuthSessionServiceImpl implements TvAuthSessionService {
     @Value("${app.frontend.url:https://hypersign.hyperbluex.com}")
     private String frontendUrl;
 
-    private static final int SESSION_EXPIRY_MINUTES = 60;
+    private static final int SESSION_EXPIRY_MINUTES = 10;
     private static final String CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     private static final SecureRandom RANDOM = new SecureRandom();
 
@@ -47,7 +48,7 @@ public class TvAuthSessionServiceImpl implements TvAuthSessionService {
         log.info("Creating TV auth session for device: {}", request.getDeviceId());
 
         // Check if device already has an active session
-        sessionRepository.findActiveSessionByDeviceId(request.getDeviceId(), LocalDateTime.now())
+        sessionRepository.findActiveSessionByDeviceId(request.getDeviceId(), LocalDateTime.now(ZoneOffset.UTC))
                 .ifPresent(existing -> {
                     log.info("Expiring existing session for device: {}", request.getDeviceId());
                     existing.setStatus(TvAuthSessionStatus.EXPIRED);
@@ -63,8 +64,8 @@ public class TvAuthSessionServiceImpl implements TvAuthSessionService {
                 .sessionCode(sessionCode)
                 .deviceId(request.getDeviceId())
                 .status(TvAuthSessionStatus.PENDING)
-                .createdAt(LocalDateTime.now())
-                .expiresAt(LocalDateTime.now().plusMinutes(SESSION_EXPIRY_MINUTES))
+                .createdAt(LocalDateTime.now(ZoneOffset.UTC))
+                .expiresAt(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(SESSION_EXPIRY_MINUTES))
                 .build();
 
         session = sessionRepository.save(session);
@@ -94,10 +95,10 @@ public class TvAuthSessionServiceImpl implements TvAuthSessionService {
         TvAuthSessionEntity session = findSession(sessionIdOrCode);
 
         log.info("Checking session for approval: id={}, status={}, expiresAt={}, now={}", 
-                session.getSessionId(), session.getStatus(), session.getExpiresAt(), LocalDateTime.now());
+                session.getSessionId(), session.getStatus(), session.getExpiresAt(), LocalDateTime.now(ZoneOffset.UTC));
 
         if (session.isExpired()) {
-            log.warn("Session expired: expiresAt={}, now={}", session.getExpiresAt(), LocalDateTime.now());
+            log.warn("Session expired: expiresAt={}, now={}", session.getExpiresAt(), LocalDateTime.now(ZoneOffset.UTC));
             throw new RdXException(HttpStatus.GONE, "Session has expired", "SESSION_EXPIRED");
         }
 
@@ -136,7 +137,7 @@ public class TvAuthSessionServiceImpl implements TvAuthSessionService {
         session.setStatus(TvAuthSessionStatus.APPROVED);
         session.setApprovedByUser(user);
         session.setOrganization(organization);
-        session.setApprovedAt(LocalDateTime.now());
+        session.setApprovedAt(LocalDateTime.now(ZoneOffset.UTC));
         session.setAccessToken(deviceToken); // Using device token as access token for TV
 
         session = sessionRepository.save(session);
@@ -163,7 +164,7 @@ public class TvAuthSessionServiceImpl implements TvAuthSessionService {
     @Transactional
     @Scheduled(fixedRate = 60000) // Run every minute
     public void cleanupExpiredSessions() {
-        int expired = sessionRepository.expireOldSessions(LocalDateTime.now());
+        int expired = sessionRepository.expireOldSessions(LocalDateTime.now(ZoneOffset.UTC));
         if (expired > 0) {
             log.info("Expired {} old TV auth sessions", expired);
         }
@@ -234,7 +235,7 @@ public class TvAuthSessionServiceImpl implements TvAuthSessionService {
                 .status(session.getStatus())
                 .qrCodeUrl(frontendUrl + "/tv-auth?code=" + session.getSessionId())
                 .expiresAt(session.getExpiresAt())
-                .expiresInSeconds(ChronoUnit.SECONDS.between(LocalDateTime.now(), session.getExpiresAt()));
+                .expiresInSeconds(ChronoUnit.SECONDS.between(LocalDateTime.now(ZoneOffset.UTC), session.getExpiresAt()));
 
         // Include tokens only if approved
         if (session.getStatus() == TvAuthSessionStatus.APPROVED || session.getStatus() == TvAuthSessionStatus.USED) {

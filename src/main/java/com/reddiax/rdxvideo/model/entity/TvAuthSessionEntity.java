@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 /**
  * Entity for TV QR code authentication sessions.
@@ -87,7 +88,7 @@ public class TvAuthSessionEntity extends Auditable {
      */
     @Column(name = "created_at", nullable = false)
     @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt = LocalDateTime.now(ZoneOffset.UTC);
 
     /**
      * When the session expires (typically 10 minutes after creation).
@@ -105,7 +106,7 @@ public class TvAuthSessionEntity extends Auditable {
      * Check if session is expired.
      */
     public boolean isExpired() {
-        return LocalDateTime.now().isAfter(expiresAt);
+        return LocalDateTime.now(ZoneOffset.UTC).isAfter(expiresAt);
     }
 
     /**
