@@ -3,29 +3,8 @@
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
 
-    <!-- LogHealer Appender -->
-    <appender name="LOGHEALER" class="com.reddiax.loghealer.client.LogHealerAppender">
-        <endpoint>${LOGHEALER_ENDPOINT:-https://loghealer.reddia-x.com/api/v1/logs/batch}</endpoint>
-        <apiKey>${LOGHEALER_API_KEY:-Tm4xYjKlOpQrStUvWxYzAbCdEfGhIjMn}</apiKey>
-        <projectId>hypersign-service</projectId>
-        <tenantId>reddia-x</tenantId>
-        <environment>${SPRING_PROFILES_ACTIVE:-development}</environment>
-        <serviceName>hypersign-service</serviceName>
-        <batchSize>50</batchSize>
-        <flushIntervalMs>5000</flushIntervalMs>
-    </appender>
-
-    <!-- Async wrapper for non-blocking logging -->
-    <appender name="ASYNC_LOGHEALER" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="LOGHEALER"/>
-        <queueSize>1000</queueSize>
-        <discardingThreshold>0</discardingThreshold>
-        <includeCallerData>true</includeCallerData>
-    </appender>
-
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="ASYNC_LOGHEALER"/>
     </root>
 
     <!-- Reduce noise from frameworks -->

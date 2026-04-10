@@ -63,9 +63,3 @@ advertisement:
 firebase:
   enabled: ${FIREBASE_ENABLED:true}
   credentials-file: ${FIREBASE_CREDENTIALS_FILE:firebase-service-account.json}
-
-# LogHealer request logging
-loghealer:
-  request-logging:
-    enabled: true
-    include-query-string: true
