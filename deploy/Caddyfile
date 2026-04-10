@@ -1,0 +1,47 @@
+# Hypersign Production Caddy Configuration
+
+# Frontend App - hypersign.hyperbluex.com
+hypersign.hyperbluex.com {
+    reverse_proxy hypersign-frontend:80
+    
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+    
+    log {
+        output file /var/log/caddy/frontend-access.log
+        format json
+    }
+}
+
+# API - hypersign-api.hyperbluex.com
+hypersign-api.hyperbluex.com {
+    @options method OPTIONS
+    handle @options {
+        header Access-Control-Allow-Origin "https://hypersign.hyperbluex.com"
+        header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+        header Access-Control-Allow-Headers "Authorization, Content-Type, Accept"
+        header Access-Control-Allow-Credentials "true"
+        header Access-Control-Max-Age "86400"
+        respond 204
+    }
+    
+    reverse_proxy hypersign-service:8088
+    
+    header {
+        X-Content-Type-Options "nosniff"
+    }
+    
+    log {
+        output file /var/log/caddy/api-access.log
+        format json
+    }
+}
+
+# Health check endpoint for load balancer
+:8081 {
+    respond /health "OK" 200
+}
