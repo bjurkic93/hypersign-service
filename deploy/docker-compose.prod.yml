@@ -6,11 +6,11 @@ services:
     image: ghcr.io/bjurkic93/hypersign-service:latest
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_NAME=hypersign_db
-      - DB_USERNAME=hypersign
-      - DB_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=hypersign_db
+      - POSTGRES_USER=hypersign
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
       - JWK_SET_URI=${JWK_SET_URI:-https://auth.reddia-x.com/.well-known/jwks.json}
       - CORS_ALLOWED_ORIGINS=https://hypersign.hyperbluex.com,https://hypersign-api.hyperbluex.com
       - STORAGE_PATH=/app/storage
