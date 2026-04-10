@@ -34,7 +34,7 @@ public class TvAuthSessionServiceImpl implements TvAuthSessionService {
     private final UserRepository userRepository;
     private final TvDeviceRegistrationService deviceRegistrationService;
 
-    @Value("${app.frontend.url:https://app.hypersign.io}")
+    @Value("${app.frontend.url:https://hypersign.hyperbluex.com}")
     private String frontendUrl;
 
     private static final int SESSION_EXPIRY_MINUTES = 10;
