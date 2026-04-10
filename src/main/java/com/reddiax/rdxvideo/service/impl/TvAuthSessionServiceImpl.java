@@ -37,7 +37,7 @@ public class TvAuthSessionServiceImpl implements TvAuthSessionService {
     @Value("${app.frontend.url:https://hypersign.hyperbluex.com}")
     private String frontendUrl;
 
-    private static final int SESSION_EXPIRY_MINUTES = 10;
+    private static final int SESSION_EXPIRY_MINUTES = 60;
     private static final String CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     private static final SecureRandom RANDOM = new SecureRandom();
 
@@ -93,7 +93,11 @@ public class TvAuthSessionServiceImpl implements TvAuthSessionService {
     public TvAuthSessionDTO getSessionForApproval(String sessionIdOrCode) {
         TvAuthSessionEntity session = findSession(sessionIdOrCode);
 
+        log.info("Checking session for approval: id={}, status={}, expiresAt={}, now={}", 
+                session.getSessionId(), session.getStatus(), session.getExpiresAt(), LocalDateTime.now());
+
         if (session.isExpired()) {
+            log.warn("Session expired: expiresAt={}, now={}", session.getExpiresAt(), LocalDateTime.now());
             throw new RdXException(HttpStatus.GONE, "Session has expired", "SESSION_EXPIRED");
         }
 
