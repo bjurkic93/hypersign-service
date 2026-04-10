@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <!-- Fix tv_auth_session table - rename updated_at/updated_by to modified_at/modified_by -->
+    <changeSet id="fix-tv-auth-session-columns" author="hypersign">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="tv_auth_session" columnName="updated_at"/>
+        </preConditions>
+        <renameColumn tableName="tv_auth_session" oldColumnName="updated_at" newColumnName="modified_at" columnDataType="TIMESTAMP"/>
+        <renameColumn tableName="tv_auth_session" oldColumnName="updated_by" newColumnName="modified_by" columnDataType="VARCHAR(255)"/>
+    </changeSet>
+
+    <!-- Add modified_at/modified_by if they don't exist (fresh install case) -->
+    <changeSet id="add-tv-auth-session-modified-columns" author="hypersign">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="tv_auth_session" columnName="modified_at"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="tv_auth_session">
+            <column name="modified_at" type="TIMESTAMP"/>
+            <column name="modified_by" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>
