@@ -47,6 +47,14 @@ public class TvContentServiceImpl implements TvContentService {
         if (schedule == null) {
             log.info("No time-specific schedule, trying fallback for org {}", organizationId);
             List<ScheduleEntity> orgSchedules = scheduleRepository.findByOrganizationIdOrderByPriorityDescCreatedAtDesc(organizationId);
+            log.info("Found {} total schedules for org {}", orgSchedules.size(), organizationId);
+            
+            for (ScheduleEntity s : orgSchedules) {
+                log.info("Schedule: id={}, name={}, active={}, playlist={}", 
+                        s.getId(), s.getName(), s.getActive(), 
+                        s.getPlaylist() != null ? s.getPlaylist().getName() : "NULL");
+            }
+            
             schedule = orgSchedules.stream()
                     .filter(s -> Boolean.TRUE.equals(s.getActive()))
                     .findFirst()
