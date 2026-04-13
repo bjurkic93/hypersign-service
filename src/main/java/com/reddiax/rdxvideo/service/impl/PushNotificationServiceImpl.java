@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -152,5 +153,57 @@ public class PushNotificationServiceImpl implements PushNotificationService {
 
     private boolean isFirebaseInitialized() {
         return !FirebaseApp.getApps().isEmpty();
+    }
+
+    // ==================== Mobile User Notifications ====================
+
+    @Override
+    public void sendRewardEarnedNotification(Long userId, BigDecimal amount, String advertisementName) {
+        // TODO: Implement user FCM token lookup
+        log.info("Reward notification for user {}: {} RDX from {}", userId, amount, advertisementName);
+    }
+
+    @Override
+    public void sendVoucherEarnedNotification(Long userId, String voucherCode, BigDecimal discountPercentage, String organizationName) {
+        // TODO: Implement user FCM token lookup
+        log.info("Voucher notification for user {}: {} ({}% off) from {}", userId, voucherCode, discountPercentage, organizationName);
+    }
+
+    @Override
+    public void sendUserNotification(Long userId, String title, String body) {
+        // TODO: Implement user FCM token lookup
+        log.info("Notification for user {}: {} - {}", userId, title, body);
+    }
+
+    @Override
+    public void sendNotificationToDevice(String fcmToken, String title, String body) {
+        if (!isFirebaseInitialized()) {
+            log.warn("Firebase not initialized, cannot send push notification");
+            return;
+        }
+
+        if (fcmToken == null || fcmToken.isBlank()) {
+            log.debug("No FCM token provided, skipping push notification");
+            return;
+        }
+
+        try {
+            Message message = Message.builder()
+                    .setToken(fcmToken)
+                    .setNotification(Notification.builder()
+                            .setTitle(title)
+                            .setBody(body)
+                            .build())
+                    .setAndroidConfig(AndroidConfig.builder()
+                            .setPriority(AndroidConfig.Priority.HIGH)
+                            .build())
+                    .build();
+
+            String response = FirebaseMessaging.getInstance().send(message);
+            log.debug("Push notification sent successfully: {}", response);
+
+        } catch (FirebaseMessagingException e) {
+            log.error("Failed to send push notification: {}", e.getMessage());
+        }
     }
 }
