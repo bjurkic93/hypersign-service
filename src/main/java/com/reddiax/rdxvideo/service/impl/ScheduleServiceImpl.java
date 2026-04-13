@@ -4,12 +4,17 @@ import com.reddiax.rdxvideo.constant.ContentStatusEnum;
 import com.reddiax.rdxvideo.constant.ScheduleRepeatType;
 import com.reddiax.rdxvideo.model.dto.ScheduleCreateRequest;
 import com.reddiax.rdxvideo.model.dto.ScheduleDTO;
+import com.reddiax.rdxvideo.model.entity.OrganizationEntity;
 import com.reddiax.rdxvideo.model.entity.PlaylistEntity;
 import com.reddiax.rdxvideo.model.entity.ScheduleEntity;
+import com.reddiax.rdxvideo.model.entity.UserEntity;
 import com.reddiax.rdxvideo.repository.PlaylistRepository;
 import com.reddiax.rdxvideo.repository.ScheduleRepository;
+import com.reddiax.rdxvideo.repository.UserRepository;
+import com.reddiax.rdxvideo.security.SecurityUtils;
 import com.reddiax.rdxvideo.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,10 +28,12 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ScheduleServiceImpl implements ScheduleService {
 
     private final ScheduleRepository scheduleRepository;
     private final PlaylistRepository playlistRepository;
+    private final UserRepository userRepository;
 
     @Override
     public List<ScheduleDTO> getAllSchedules() {
@@ -48,9 +55,13 @@ public class ScheduleServiceImpl implements ScheduleService {
         PlaylistEntity playlist = playlistRepository.findById(request.getPlaylistId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Playlist not found"));
 
+        // Get current user's organization
+        OrganizationEntity organization = getCurrentUserOrganization();
+
         ScheduleEntity schedule = ScheduleEntity.builder()
                 .name(request.getName())
                 .playlist(playlist)
+                .organization(organization)
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
                 .startTime(request.getStartTime())
@@ -62,8 +73,21 @@ public class ScheduleServiceImpl implements ScheduleService {
                 .status(request.getStatus() != null ? request.getStatus() : ContentStatusEnum.DRAFT)
                 .build();
 
+        log.info("Creating schedule '{}' for organization {}", request.getName(), 
+                organization != null ? organization.getId() : "NULL");
+
         schedule = scheduleRepository.save(schedule);
         return toDTO(schedule);
+    }
+    
+    private OrganizationEntity getCurrentUserOrganization() {
+        String userId = SecurityUtils.getCurrentUserId()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated"));
+        
+        UserEntity user = userRepository.findByExternalId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        
+        return user.getOrganization();
     }
 
     @Override
