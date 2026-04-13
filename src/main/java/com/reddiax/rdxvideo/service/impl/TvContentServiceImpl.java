@@ -7,10 +7,15 @@ import com.reddiax.rdxvideo.repository.ScheduleRepository;
 import com.reddiax.rdxvideo.service.TvContentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -23,7 +28,13 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TvContentServiceImpl implements TvContentService {
 
+    private static final Duration MEDIA_URL_TTL = Duration.ofHours(4);
+    
     private final ScheduleRepository scheduleRepository;
+    private final S3Presigner presigner;
+    
+    @Value("${cloudflare.r2.bucket}")
+    private String bucket;
 
     @Override
     @Transactional(readOnly = true)
@@ -165,8 +176,8 @@ public class TvContentServiceImpl implements TvContentService {
         if (item.getMedia() != null) {
             MediaUploadEntity media = item.getMedia();
             builder.name(media.getOriginalFilename())
-                    .url(media.getObjectKey())
-                    .thumbnailUrl(media.getThumbnailObjectKey())
+                    .url(presignUrl(media.getObjectKey()))
+                    .thumbnailUrl(media.getThumbnailObjectKey() != null ? presignUrl(media.getThumbnailObjectKey()) : null)
                     .mediaType(media.getContentType() != null ? media.getContentType().name() : null);
         }
 
@@ -190,5 +201,27 @@ public class TvContentServiceImpl implements TvContentService {
         }
 
         return builder.build();
+    }
+    
+    private String presignUrl(String objectKey) {
+        if (objectKey == null || objectKey.isBlank()) {
+            return null;
+        }
+        try {
+            GetObjectRequest getRequest = GetObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(objectKey)
+                    .build();
+            
+            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                    .signatureDuration(MEDIA_URL_TTL)
+                    .getObjectRequest(getRequest)
+                    .build();
+            
+            return presigner.presignGetObject(presignRequest).url().toString();
+        } catch (Exception e) {
+            log.error("Failed to presign URL for key: {}", objectKey, e);
+            return null;
+        }
     }
 }
