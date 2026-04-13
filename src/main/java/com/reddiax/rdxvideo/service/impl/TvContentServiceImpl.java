@@ -31,7 +31,11 @@ public class TvContentServiceImpl implements TvContentService {
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
 
+        log.info("Looking for active schedule for org {} at date={}, time={}", organizationId, today, now);
+
+        // First try to find time-specific active schedule
         List<ScheduleEntity> activeSchedules = scheduleRepository.findActiveSchedulesForDateTime(today, now);
+        log.info("Found {} time-specific active schedules", activeSchedules.size());
 
         // Filter by organization
         ScheduleEntity schedule = activeSchedules.stream()
@@ -39,8 +43,22 @@ public class TvContentServiceImpl implements TvContentService {
                 .findFirst()
                 .orElse(null);
 
+        // Fallback: if no time-specific schedule, get any active schedule for this org
         if (schedule == null) {
-            log.info("No active schedule found for org {} at {}", organizationId, now);
+            log.info("No time-specific schedule, trying fallback for org {}", organizationId);
+            List<ScheduleEntity> orgSchedules = scheduleRepository.findByOrganizationIdOrderByPriorityDescCreatedAtDesc(organizationId);
+            schedule = orgSchedules.stream()
+                    .filter(s -> Boolean.TRUE.equals(s.getActive()))
+                    .findFirst()
+                    .orElse(null);
+            
+            if (schedule != null) {
+                log.info("Found fallback schedule: {} (id={})", schedule.getName(), schedule.getId());
+            }
+        }
+
+        if (schedule == null) {
+            log.info("No active schedule found for org {}", organizationId);
             return TvContentResponse.builder()
                     .schedule(null)
                     .playlist(null)
