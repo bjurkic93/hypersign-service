@@ -62,7 +62,14 @@ public class SecurityConfig {
                     "/api/payments/config"    // Public Stripe publishable key
                 ).permitAll()
                 // TV device endpoints - X-Device-Token auth (validated in controller)
-                .requestMatchers("/api/v1/tv/impressions/**", "/api/v1/tv/devices/by-token", "/api/v1/tv/devices/clear-launch", "/api/v1/tv/devices/display-status").permitAll()
+                .requestMatchers(
+                    "/api/v1/tv/impressions/**",
+                    "/api/v1/tv/devices/by-token",
+                    "/api/v1/tv/devices/clear-launch",
+                    "/api/v1/tv/devices/display-status",
+                    "/api/v1/tv/content",
+                    "/api/v1/tv/playback-logs"
+                ).permitAll()
                 // TV QR auth - session creation and polling are public, approval requires auth
                 .requestMatchers(HttpMethod.POST, "/api/v1/tv/auth/session").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/tv/auth/session/*").permitAll()
