@@ -4,6 +4,9 @@ import com.reddiax.rdxvideo.exception.RdXException;
 import com.reddiax.rdxvideo.model.dto.TvContentResponse;
 import com.reddiax.rdxvideo.model.entity.*;
 import com.reddiax.rdxvideo.repository.ScheduleRepository;
+import com.reddiax.rdxvideo.repository.TickerContentRepository;
+import com.reddiax.rdxvideo.repository.RssContentRepository;
+import com.reddiax.rdxvideo.repository.WebpageContentRepository;
 import com.reddiax.rdxvideo.service.TvContentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +34,9 @@ public class TvContentServiceImpl implements TvContentService {
     private static final Duration MEDIA_URL_TTL = Duration.ofHours(4);
     
     private final ScheduleRepository scheduleRepository;
+    private final TickerContentRepository tickerContentRepository;
+    private final RssContentRepository rssContentRepository;
+    private final WebpageContentRepository webpageContentRepository;
     private final S3Presigner presigner;
     
     @Value("${cloudflare.r2.bucket}")
@@ -181,20 +187,47 @@ public class TvContentServiceImpl implements TvContentService {
                     .mediaType(media.getContentType() != null ? media.getContentType().name() : null);
         }
 
-        // For non-media content types, we'd need to fetch from respective tables
-        // For now, set contentId which can be used to fetch details
+        // Fetch content details from respective tables
         switch (item.getContentType()) {
             case TICKER:
-                // Could fetch TickerEntity if exists
-                builder.name("Ticker #" + item.getContentId());
+                if (item.getContentId() != null) {
+                    tickerContentRepository.findById(item.getContentId()).ifPresent(ticker -> {
+                        builder.name(ticker.getName())
+                                .tickerText(ticker.getText())
+                                .tickerSpeed(String.valueOf(ticker.getSpeed()))
+                                .tickerDirection(ticker.getDirection())
+                                .tickerBackgroundColor(ticker.getBackgroundColor())
+                                .tickerTextColor(ticker.getTextColor())
+                                .tickerFontFamily(ticker.getFontFamily())
+                                .tickerFontSize(ticker.getFontSize());
+                    });
+                }
                 break;
             case RSS:
-                // Could fetch RssEntity if exists
-                builder.name("RSS Feed #" + item.getContentId());
+                if (item.getContentId() != null) {
+                    rssContentRepository.findById(item.getContentId()).ifPresent(rss -> {
+                        builder.name(rss.getName())
+                                .rssUrl(rss.getFeedUrl())
+                                .rssRefreshInterval(rss.getRefreshIntervalMinutes())
+                                .rssMaxItems(rss.getMaxItems())
+                                .rssShowImages(rss.getShowImages())
+                                .rssShowDescription(rss.getShowDescription())
+                                .rssDisplayMode(rss.getDisplayMode())
+                                .rssBackgroundColor(rss.getBackgroundColor())
+                                .rssTextColor(rss.getTextColor());
+                    });
+                }
                 break;
             case WEBPAGE:
-                // Could fetch WebpageEntity if exists
-                builder.name("Webpage #" + item.getContentId());
+                if (item.getContentId() != null) {
+                    webpageContentRepository.findById(item.getContentId()).ifPresent(webpage -> {
+                        builder.name(webpage.getName())
+                                .webpageUrl(webpage.getUrl())
+                                .webpageRefreshInterval(webpage.getRefreshIntervalSeconds())
+                                .webpageScrollEnabled(webpage.getScrollEnabled())
+                                .webpageZoomLevel(webpage.getZoomLevel());
+                    });
+                }
                 break;
             default:
                 break;

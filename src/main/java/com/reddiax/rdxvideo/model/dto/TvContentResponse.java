@@ -96,12 +96,25 @@ public class TvContentResponse {
         private String tickerText;
         private String tickerSpeed;
         private String tickerDirection;
+        private String tickerBackgroundColor;
+        private String tickerTextColor;
+        private String tickerFontFamily;
+        private Integer tickerFontSize;
         
         // For RSS type
         private String rssUrl;
         private Integer rssRefreshInterval;
+        private Integer rssMaxItems;
+        private Boolean rssShowImages;
+        private Boolean rssShowDescription;
+        private String rssDisplayMode;
+        private String rssBackgroundColor;
+        private String rssTextColor;
         
         // For WEBPAGE type
         private String webpageUrl;
+        private Integer webpageRefreshInterval;
+        private Boolean webpageScrollEnabled;
+        private Integer webpageZoomLevel;
     }
 }
