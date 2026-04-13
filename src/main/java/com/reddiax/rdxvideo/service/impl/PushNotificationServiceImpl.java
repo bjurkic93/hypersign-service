@@ -206,4 +206,44 @@ public class PushNotificationServiceImpl implements PushNotificationService {
             log.error("Failed to send push notification: {}", e.getMessage());
         }
     }
+
+    @Override
+    public int sendNotificationToDevices(List<String> fcmTokens, String title, String body) {
+        if (!isFirebaseInitialized()) {
+            log.warn("Firebase not initialized, cannot send push notifications");
+            return 0;
+        }
+
+        List<String> validTokens = fcmTokens.stream()
+                .filter(t -> t != null && !t.isBlank())
+                .collect(Collectors.toList());
+
+        if (validTokens.isEmpty()) {
+            log.debug("No valid FCM tokens provided");
+            return 0;
+        }
+
+        try {
+            MulticastMessage message = MulticastMessage.builder()
+                    .addAllTokens(validTokens)
+                    .setNotification(Notification.builder()
+                            .setTitle(title)
+                            .setBody(body)
+                            .build())
+                    .setAndroidConfig(AndroidConfig.builder()
+                            .setPriority(AndroidConfig.Priority.HIGH)
+                            .build())
+                    .build();
+
+            BatchResponse response = FirebaseMessaging.getInstance().sendEachForMulticast(message);
+            log.info("Push notification sent to {} devices, {} successful, {} failed",
+                    validTokens.size(), response.getSuccessCount(), response.getFailureCount());
+
+            return response.getSuccessCount();
+
+        } catch (FirebaseMessagingException e) {
+            log.error("Failed to send multicast push notification: {}", e.getMessage());
+            return 0;
+        }
+    }
 }

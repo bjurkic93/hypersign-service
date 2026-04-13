@@ -88,4 +88,14 @@ public interface PushNotificationService {
      * @param body notification body
      */
     void sendNotificationToDevice(String fcmToken, String title, String body);
+
+    /**
+     * Send notifications to multiple devices and return count of successful deliveries.
+     *
+     * @param fcmTokens list of FCM tokens
+     * @param title notification title
+     * @param body notification body
+     * @return number of successfully sent notifications
+     */
+    int sendNotificationToDevices(List<String> fcmTokens, String title, String body);
 }
