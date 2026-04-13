@@ -228,6 +228,22 @@ public class TvAuthSessionServiceImpl implements TvAuthSessionService {
         return finalCode;
     }
 
+    @Override
+    @Transactional
+    public void updateFcmToken(String deviceToken, String fcmToken) {
+        log.info("Updating FCM token for device");
+        
+        // Find session by access token (device token)
+        TvAuthSessionEntity session = sessionRepository.findByAccessToken(deviceToken)
+                .orElseThrow(() -> new RdXException(HttpStatus.UNAUTHORIZED, "Invalid device token", "INVALID_TOKEN"));
+        
+        session.setFcmToken(fcmToken);
+        session.setFcmTokenUpdatedAt(LocalDateTime.now(ZoneOffset.UTC));
+        sessionRepository.save(session);
+        
+        log.info("FCM token updated for session: {}", session.getSessionId());
+    }
+
     private TvAuthSessionDTO mapToDTO(TvAuthSessionEntity session) {
         TvAuthSessionDTO.TvAuthSessionDTOBuilder builder = TvAuthSessionDTO.builder()
                 .sessionId(session.getSessionId())

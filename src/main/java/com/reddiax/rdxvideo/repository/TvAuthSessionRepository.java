@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -33,4 +34,15 @@ public interface TvAuthSessionRepository extends JpaRepository<TvAuthSessionEnti
     @Modifying
     @Query("UPDATE TvAuthSessionEntity s SET s.status = 'EXPIRED' WHERE s.status = 'PENDING' AND s.expiresAt < :now")
     int expireOldSessions(LocalDateTime now);
+
+    /**
+     * Find session by access token (device token).
+     */
+    Optional<TvAuthSessionEntity> findByAccessToken(String accessToken);
+
+    /**
+     * Find all FCM tokens for an organization.
+     */
+    @Query("SELECT s.fcmToken FROM TvAuthSessionEntity s WHERE s.organization.id = :organizationId AND s.fcmToken IS NOT NULL AND s.status IN ('APPROVED', 'USED')")
+    List<String> findFcmTokensByOrganizationId(Long organizationId);
 }

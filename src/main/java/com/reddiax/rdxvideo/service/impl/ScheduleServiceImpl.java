@@ -12,6 +12,7 @@ import com.reddiax.rdxvideo.repository.PlaylistRepository;
 import com.reddiax.rdxvideo.repository.ScheduleRepository;
 import com.reddiax.rdxvideo.repository.UserRepository;
 import com.reddiax.rdxvideo.security.SecurityUtils;
+import com.reddiax.rdxvideo.service.PushNotificationService;
 import com.reddiax.rdxvideo.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     private final ScheduleRepository scheduleRepository;
     private final PlaylistRepository playlistRepository;
     private final UserRepository userRepository;
+    private final PushNotificationService pushNotificationService;
 
     @Override
     public List<ScheduleDTO> getAllSchedules() {
@@ -77,6 +79,12 @@ public class ScheduleServiceImpl implements ScheduleService {
                 organization != null ? organization.getId() : "NULL");
 
         schedule = scheduleRepository.save(schedule);
+        
+        // Send push notification to all organization devices
+        if (organization != null) {
+            pushNotificationService.sendContentRefreshToOrganization(organization.getId());
+        }
+        
         return toDTO(schedule);
     }
     
@@ -113,6 +121,12 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
 
         schedule = scheduleRepository.save(schedule);
+        
+        // Send push notification to all organization devices
+        if (schedule.getOrganization() != null) {
+            pushNotificationService.sendContentRefreshToOrganization(schedule.getOrganization().getId());
+        }
+        
         return toDTO(schedule);
     }
 
@@ -132,6 +146,12 @@ public class ScheduleServiceImpl implements ScheduleService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Schedule not found"));
         schedule.setActive(!schedule.getActive());
         schedule = scheduleRepository.save(schedule);
+        
+        // Send push notification to all organization devices
+        if (schedule.getOrganization() != null) {
+            pushNotificationService.sendContentRefreshToOrganization(schedule.getOrganization().getId());
+        }
+        
         return toDTO(schedule);
     }
 

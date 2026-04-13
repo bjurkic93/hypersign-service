@@ -21,6 +21,7 @@ import com.reddiax.rdxvideo.repository.ScheduleRepository;
 import com.reddiax.rdxvideo.repository.TickerContentRepository;
 import com.reddiax.rdxvideo.repository.WebpageContentRepository;
 import com.reddiax.rdxvideo.service.PlaylistService;
+import com.reddiax.rdxvideo.service.PushNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,6 +51,7 @@ public class PlaylistServiceImpl implements PlaylistService {
     private final RssContentRepository rssContentRepository;
     private final WebpageContentRepository webpageContentRepository;
     private final S3Presigner presigner;
+    private final PushNotificationService pushNotificationService;
 
     @Value("${cloudflare.r2.bucket}")
     private String bucket;
@@ -136,6 +138,10 @@ public class PlaylistServiceImpl implements PlaylistService {
         }
 
         playlist = playlistRepository.save(playlist);
+        
+        // Notify all organizations that use this playlist
+        notifyPlaylistChange(playlist.getId());
+        
         return toDTO(playlist);
     }
 
@@ -198,7 +204,23 @@ public class PlaylistServiceImpl implements PlaylistService {
 
         playlist.setModifiedAt(java.time.LocalDateTime.now());
         PlaylistEntity saved = playlistRepository.save(playlist);
+        
+        // Notify all organizations that use this playlist
+        notifyPlaylistChange(saved.getId());
+        
         return toDTO(saved);
+    }
+
+    private void notifyPlaylistChange(Long playlistId) {
+        var linkedSchedules = scheduleRepository.findByPlaylistId(playlistId);
+        linkedSchedules.stream()
+                .filter(s -> s.getOrganization() != null)
+                .map(s -> s.getOrganization().getId())
+                .distinct()
+                .forEach(orgId -> {
+                    log.info("Sending content refresh push to organization {} for playlist change", orgId);
+                    pushNotificationService.sendContentRefreshToOrganization(orgId);
+                });
     }
 
     private void addItemsToPlaylist(PlaylistEntity playlist, List<PlaylistItemRequest> items) {

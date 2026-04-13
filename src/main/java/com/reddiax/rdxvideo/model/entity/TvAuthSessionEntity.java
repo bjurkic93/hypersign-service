@@ -103,6 +103,18 @@ public class TvAuthSessionEntity extends Auditable {
     private LocalDateTime approvedAt;
 
     /**
+     * FCM token for push notifications (set by device after auth).
+     */
+    @Column(name = "fcm_token", length = 512)
+    private String fcmToken;
+
+    /**
+     * When FCM token was last updated.
+     */
+    @Column(name = "fcm_token_updated_at")
+    private LocalDateTime fcmTokenUpdatedAt;
+
+    /**
      * Check if session is expired.
      */
     public boolean isExpired() {

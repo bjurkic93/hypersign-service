@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="add-fcm-token-to-tv-auth-session" author="hypersign">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="TV_AUTH_SESSION" columnName="fcm_token"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="TV_AUTH_SESSION">
+            <column name="fcm_token" type="VARCHAR(512)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="add-fcm-token-updated-at-to-tv-auth-session" author="hypersign">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="TV_AUTH_SESSION" columnName="fcm_token_updated_at"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="TV_AUTH_SESSION">
+            <column name="fcm_token_updated_at" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

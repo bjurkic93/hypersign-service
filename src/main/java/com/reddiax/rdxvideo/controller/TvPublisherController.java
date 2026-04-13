@@ -6,7 +6,9 @@ import com.reddiax.rdxvideo.model.dto.TvContentResponse;
 import com.reddiax.rdxvideo.model.dto.TvImpressionRequestDTO;
 import com.reddiax.rdxvideo.model.dto.TvImpressionResponseDTO;
 import com.reddiax.rdxvideo.service.PlaybackLogService;
+import com.reddiax.rdxvideo.service.PushNotificationService;
 import com.reddiax.rdxvideo.service.TvAdvertisementService;
+import com.reddiax.rdxvideo.service.TvAuthSessionService;
 import com.reddiax.rdxvideo.service.TvContentService;
 import com.reddiax.rdxvideo.service.TvDeviceRegistrationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,6 +38,8 @@ public class TvPublisherController {
     private final TvDeviceRegistrationService tvDeviceRegistrationService;
     private final PlaybackLogService playbackLogService;
     private final TvContentService tvContentService;
+    private final TvAuthSessionService tvAuthSessionService;
+    private final PushNotificationService pushNotificationService;
 
     /**
      * Record a TV advertisement impression.
@@ -160,5 +164,32 @@ public class TvPublisherController {
         log.info("Fetching TV content for org {}", organizationId);
         
         return ResponseEntity.ok(tvContentService.getTvContent(organizationId));
+    }
+
+    /**
+     * Register FCM token for push notifications.
+     * Called by TV device after successful authentication.
+     */
+    @PostMapping("/device/fcm-token")
+    @Operation(summary = "Register FCM token",
+               description = "Register Firebase Cloud Messaging token for push notifications. " +
+                       "Called by TV device to receive instant content updates.")
+    public ResponseEntity<Void> registerFcmToken(
+            @Parameter(description = "Device token for authentication", required = true)
+            @RequestHeader("X-Device-Token") String deviceToken,
+            @Valid @RequestBody FcmTokenRequest request) {
+        
+        log.info("Registering FCM token for device");
+        tvAuthSessionService.updateFcmToken(deviceToken, request.getFcmToken());
+        
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * DTO for FCM token registration request.
+     */
+    @lombok.Data
+    public static class FcmTokenRequest {
+        private String fcmToken;
     }
 }

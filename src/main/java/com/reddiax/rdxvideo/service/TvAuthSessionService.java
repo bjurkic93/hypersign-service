@@ -41,4 +41,12 @@ public interface TvAuthSessionService {
      * Cleanup expired sessions.
      */
     void cleanupExpiredSessions();
+
+    /**
+     * Update FCM token for a device.
+     * 
+     * @param deviceToken the device access token (X-Device-Token header)
+     * @param fcmToken the Firebase Cloud Messaging token
+     */
+    void updateFcmToken(String deviceToken, String fcmToken);
 }
