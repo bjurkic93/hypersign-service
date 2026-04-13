@@ -11,5 +11,6 @@
     <include file="db/changelog/v1.4.0-playlist-layout.xml"/>
     <include file="db/changelog/v1.5.0-playlist-item-section.xml"/>
     <include file="db/changelog/v1.6.0-tv-auth-session-fix.xml"/>
+    <include file="db/changelog/v1.7.0-playback-log.xml"/>
 
 </databaseChangeLog>

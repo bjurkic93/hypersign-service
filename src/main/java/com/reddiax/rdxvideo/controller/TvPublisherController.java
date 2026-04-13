@@ -1,8 +1,13 @@
 package com.reddiax.rdxvideo.controller;
 
+import com.reddiax.rdxvideo.model.dto.PlaybackLogBatchRequest;
+import com.reddiax.rdxvideo.model.dto.PlaybackLogBatchResponse;
+import com.reddiax.rdxvideo.model.dto.TvContentResponse;
 import com.reddiax.rdxvideo.model.dto.TvImpressionRequestDTO;
 import com.reddiax.rdxvideo.model.dto.TvImpressionResponseDTO;
+import com.reddiax.rdxvideo.service.PlaybackLogService;
 import com.reddiax.rdxvideo.service.TvAdvertisementService;
+import com.reddiax.rdxvideo.service.TvContentService;
 import com.reddiax.rdxvideo.service.TvDeviceRegistrationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,6 +34,8 @@ public class TvPublisherController {
 
     private final TvAdvertisementService tvAdvertisementService;
     private final TvDeviceRegistrationService tvDeviceRegistrationService;
+    private final PlaybackLogService playbackLogService;
+    private final TvContentService tvContentService;
 
     /**
      * Record a TV advertisement impression.
@@ -118,5 +125,40 @@ public class TvPublisherController {
         request.setDisplayerOrganizationId(organizationId);
         
         return ResponseEntity.ok(tvAdvertisementService.recordImpression(request));
+    }
+
+    /**
+     * Submit playback logs in batch.
+     * TV devices periodically send what content was displayed and for how long.
+     */
+    @PostMapping("/playback-logs")
+    @Operation(summary = "Submit playback logs batch",
+               description = "Submit a batch of playback logs from the TV device. " +
+                       "Used to track what content was displayed and for how long.")
+    public ResponseEntity<PlaybackLogBatchResponse> submitPlaybackLogs(
+            @Parameter(description = "Device token for authentication", required = true)
+            @RequestHeader("X-Device-Token") String deviceToken,
+            @Valid @RequestBody PlaybackLogBatchRequest request) {
+        
+        log.info("Receiving {} playback logs from device", request.getLogs().size());
+        return ResponseEntity.ok(playbackLogService.saveBatch(deviceToken, request));
+    }
+
+    /**
+     * Get current content for the TV device.
+     * Returns the active schedule with playlist, layout and all content items.
+     */
+    @GetMapping("/content")
+    @Operation(summary = "Get TV content",
+               description = "Get the current active content for this TV device. " +
+                       "Returns schedule with playlist, layout sections, and content items.")
+    public ResponseEntity<TvContentResponse> getContent(
+            @Parameter(description = "Device token for authentication", required = true)
+            @RequestHeader("X-Device-Token") String deviceToken) {
+        
+        Long organizationId = tvDeviceRegistrationService.validateDeviceToken(deviceToken);
+        log.info("Fetching TV content for org {}", organizationId);
+        
+        return ResponseEntity.ok(tvContentService.getTvContent(organizationId));
     }
 }

@@ -25,9 +25,9 @@ spring:
     check-template-location: true
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/${POSTGRES_DB:hypersign}
-    username: ${POSTGRES_USER:hypersign_user}
-    password: ${POSTGRES_PASSWORD:Passw0rd}
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/${POSTGRES_DB:hypersign_db}
+    username: ${POSTGRES_USER:hypersign}
+    password: ${POSTGRES_PASSWORD:hypersign123}
   liquibase:
     change-log: classpath:db/changelog/changelog-master.xml
 

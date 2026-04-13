@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="create-playback-log-table" author="hypersign">
+        <createTable tableName="playback_log">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="device_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="organization_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content_type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="started_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="duration_ms" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="received_at" type="TIMESTAMP" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="playback_log"
+                baseColumnNames="device_id"
+                constraintName="fk_playback_log_device"
+                referencedTableName="tv_device_registration"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <createIndex indexName="idx_playback_log_device" tableName="playback_log">
+            <column name="device_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_playback_log_org" tableName="playback_log">
+            <column name="organization_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_playback_log_content" tableName="playback_log">
+            <column name="content_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_playback_log_started" tableName="playback_log">
+            <column name="started_at"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
