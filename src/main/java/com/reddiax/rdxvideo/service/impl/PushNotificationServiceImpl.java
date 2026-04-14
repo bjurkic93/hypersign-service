@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 public class PushNotificationServiceImpl implements PushNotificationService {
 
     private final TvAuthSessionRepository tvAuthSessionRepository;
+    private final TvWebSocketHandler tvWebSocketHandler;
 
     @Override
     public void sendContentRefresh(String fcmToken) {
@@ -40,6 +41,14 @@ public class PushNotificationServiceImpl implements PushNotificationService {
 
     @Override
     public void sendContentRefreshToOrganization(Long organizationId) {
+        // Send via WebSocket first (works for all devices including those without Google Play Services)
+        int wsConnections = tvWebSocketHandler.getConnectionCount(organizationId);
+        if (wsConnections > 0) {
+            tvWebSocketHandler.sendContentRefresh(organizationId);
+            log.info("Sent content refresh via WebSocket to {} connections for org {}", wsConnections, organizationId);
+        }
+        
+        // Also send via FCM for devices that support it (as backup/for devices not connected via WebSocket)
         List<String> tokens = tvAuthSessionRepository.findFcmTokensByOrganizationId(organizationId);
         
         if (tokens.isEmpty()) {
@@ -47,7 +56,7 @@ public class PushNotificationServiceImpl implements PushNotificationService {
             return;
         }
         
-        log.info("Sending content refresh to {} devices of organization {}", tokens.size(), organizationId);
+        log.info("Sending content refresh via FCM to {} devices of organization {}", tokens.size(), organizationId);
         
         Map<String, String> data = new HashMap<>();
         data.put("action", "REFRESH_CONTENT");
