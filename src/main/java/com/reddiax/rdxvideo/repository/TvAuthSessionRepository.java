@@ -36,10 +36,16 @@ public interface TvAuthSessionRepository extends JpaRepository<TvAuthSessionEnti
     int expireOldSessions(LocalDateTime now);
 
     /**
-     * Find the latest active session by access token (device token).
+     * Find session by access token (device token).
      */
-    @Query("SELECT s FROM TvAuthSessionEntity s WHERE s.accessToken = :accessToken AND s.status IN ('APPROVED', 'USED') ORDER BY s.id DESC LIMIT 1")
-    Optional<TvAuthSessionEntity> findByAccessToken(String accessToken);
+    Optional<TvAuthSessionEntity> findFirstByAccessTokenAndStatusIn(String accessToken, List<TvAuthSessionStatus> statuses);
+    
+    /**
+     * Delete old sessions for a device (keep only the latest).
+     */
+    @Modifying
+    @Query("DELETE FROM TvAuthSessionEntity s WHERE s.deviceId = :deviceId AND s.id != :keepId")
+    int deleteOldSessionsForDevice(String deviceId, Long keepId);
 
     /**
      * Find all FCM tokens for an organization.

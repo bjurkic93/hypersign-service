@@ -141,6 +141,13 @@ public class TvAuthSessionServiceImpl implements TvAuthSessionService {
         session.setAccessToken(deviceToken); // Using device token as access token for TV
 
         session = sessionRepository.save(session);
+        
+        // Delete old sessions for this device (keep only the current one)
+        int deleted = sessionRepository.deleteOldSessionsForDevice(session.getDeviceId(), session.getId());
+        if (deleted > 0) {
+            log.info("Deleted {} old sessions for device: {}", deleted, session.getDeviceId());
+        }
+        
         log.info("Approved TV auth session: {} for org: {} by user: {}", 
                 session.getSessionId(), organization.getId(), currentUserId);
 

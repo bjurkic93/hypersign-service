@@ -2,6 +2,7 @@ package com.reddiax.rdxvideo.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.reddiax.rdxvideo.model.entity.TvAuthSessionEntity;
+import com.reddiax.rdxvideo.model.entity.TvAuthSessionStatus;
 import com.reddiax.rdxvideo.repository.TvAuthSessionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -54,7 +56,8 @@ public class TvWebSocketHandler extends TextWebSocketHandler {
             return;
         }
 
-        Optional<TvAuthSessionEntity> authSession = tvAuthSessionRepository.findByAccessToken(token);
+        Optional<TvAuthSessionEntity> authSession = tvAuthSessionRepository.findFirstByAccessTokenAndStatusIn(
+                token, List.of(TvAuthSessionStatus.APPROVED, TvAuthSessionStatus.USED));
         if (authSession.isEmpty() || authSession.get().getOrganization() == null) {
             log.warn("Invalid device token for WebSocket: {}", token.substring(0, Math.min(20, token.length())));
             session.close(CloseStatus.POLICY_VIOLATION);
