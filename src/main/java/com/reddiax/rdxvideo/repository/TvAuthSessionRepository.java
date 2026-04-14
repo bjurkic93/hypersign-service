@@ -36,8 +36,9 @@ public interface TvAuthSessionRepository extends JpaRepository<TvAuthSessionEnti
     int expireOldSessions(LocalDateTime now);
 
     /**
-     * Find session by access token (device token).
+     * Find the latest active session by access token (device token).
      */
+    @Query("SELECT s FROM TvAuthSessionEntity s WHERE s.accessToken = :accessToken AND s.status IN ('APPROVED', 'USED') ORDER BY s.id DESC LIMIT 1")
     Optional<TvAuthSessionEntity> findByAccessToken(String accessToken);
 
     /**
