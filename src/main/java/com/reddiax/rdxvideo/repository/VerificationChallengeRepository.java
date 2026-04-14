@@ -2,6 +2,7 @@ package com.reddiax.rdxvideo.repository;
 
 import com.reddiax.rdxvideo.model.entity.VerificationChallengeEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -51,11 +52,13 @@ public interface VerificationChallengeRepository extends JpaRepository<Verificat
             @Param("deviceId") Long deviceId,
             @Param("since") LocalDateTime since);
     
+    @Modifying
     @Query("DELETE FROM VerificationChallengeEntity c WHERE c.expiresAt < :before")
     void deleteExpiredChallenges(@Param("before") LocalDateTime before);
     
     void deleteByUserAdvertisementId(Long userAdvertisementId);
     
+    @Modifying
     @Query("DELETE FROM VerificationChallengeEntity c WHERE c.userAdvertisement.id IN :userAdIds")
     void deleteByUserAdvertisementIdIn(@Param("userAdIds") List<Long> userAdIds);
 }
